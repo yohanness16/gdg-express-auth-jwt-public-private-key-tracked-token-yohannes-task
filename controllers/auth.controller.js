@@ -164,6 +164,34 @@ export const signIn = async (req, res, next) => {
   }
 };
 
+export const signOut = async (req, res, next) => {
+  try {
+    const { refresh_token } = req.cookies;
+
+    if (refresh_token) {
+      
+      const hashed_refresh_token = crypto
+        .createHash("sha256")
+        .update(refresh_token)
+        .digest("hex");
+
+      
+      await RefreshToken.findOneAndDelete({ refresh_token: hashed_refresh_token });
+    }
+
+   
+    res.clearCookie("access_token");
+    res.clearCookie("refresh_token");
+
+    res.status(200).json({
+      success: true,
+      message: "Logged out successfully",
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const refreshToken = async (req, res, next) => {
   try {
     const refresh_token = req.cookies?.refresh_token;
